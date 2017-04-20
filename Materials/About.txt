@@ -1,0 +1,2 @@
+K øešení udìlat blokový nákres, bloèky s propojeními, ani ne tak text, jako obrázky. Klidnì stavový diagram, atd... to je na nás.
+U kodu musí být komentáøe!
