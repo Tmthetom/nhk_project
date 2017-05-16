@@ -1,18 +1,24 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
+-- Initialise Inputs
 entity nhk is
 	port (
-		clk_in		:	in 	std_logic;
-		button1		:	in		std_logic;
-		button2		:	in		std_logic;
-		input0		:	in		std_logic;
-		input1		:	in		std_logic;
-		segm			:	out	std_logic_vector(6 downto 0)
+		clk_in		:	in 		std_logic;						-- Clock
+		button1		:	in		std_logic;						-- Button for vector 1
+		button2		:	in		std_logic;  					-- Button for vector 2
+		input0		:	in		std_logic;  					-- Vector 1
+		input1		:	in		std_logic;  					-- Vector 2
+		segm		:	out		std_logic_vector(6 downto 0)	-- 7-Segments
 	);
 end nhk;
 
 architecture arch of nhk is
+
+-- Initialise Pulse (of buttons)
+SIGNAL s_pulse2	:	std_logic;
+
+-- Initialise Memory
 SIGNAL mem_10	:	std_logic;
 SIGNAL mem_11	:	std_logic;
 SIGNAL mem_20	:	std_logic;
@@ -30,8 +36,10 @@ SIGNAL mem_71	:	std_logic;
 SIGNAL mem_80	:	std_logic;
 SIGNAL mem_81	:	std_logic;
 
+-- Initialise Pulse (of buttons)
 SIGNAL s_pulse	:	std_logic;
 
+-- Initialise States (of vectors)
 SIGNAL s_state1	:	std_logic;
 SIGNAL s_state2	:	std_logic;
 SIGNAL s_state3	:	std_logic;
@@ -41,13 +49,25 @@ SIGNAL s_state6	:	std_logic;
 SIGNAL s_state7	:	std_logic;
 SIGNAL s_state8	:	std_logic;
 
+-- Initialise Sum of differences
 SIGNAL s_sum		: std_logic_vector(3 downto 0);
+
+-- Initialise Memory connection
 begin
+
+-- Pulse
+Inst_pulse	 :	ENTITY	work.pulse
+	PORT MAP(
+		clk	 		=> clk_in,
+		user_input	=> button1,
+		output_1		=> s_pulse2
+	);
+	
 Inst_memory_1:	ENTITY	work.memory_2
 	PORT MAP(
 	   input0 => input0,
 		input1 => input1,
-		button => button1,
+		button => s_pulse2,
 		clk	 => clk_in,
       output0=> mem_10,
 		output1=> mem_11
@@ -56,7 +76,7 @@ Inst_memory_2:	ENTITY	work.memory_2
 	PORT MAP(
 		input0 => mem_10,
 		input1 => mem_11,
-		button => button1,
+		button => s_pulse2,
 		clk	 => clk_in,
       output0=> mem_20,
 		output1=> mem_21
@@ -65,7 +85,7 @@ Inst_memory_3:	ENTITY	work.memory_2
 	PORT MAP(
 		input0 => mem_20,
 		input1 => mem_21,
-		button => button1,
+		button => s_pulse2,
 		clk	 => clk_in,
       output0=> mem_30,
 		output1=> mem_31
@@ -74,7 +94,7 @@ Inst_memory_4:	ENTITY	work.memory_2
 	PORT MAP(
 		input0 => mem_30,
 		input1 => mem_31,
-		button => button1,
+		button => s_pulse2,
 		clk	 => clk_in,
       output0=> mem_40,
 		output1=> mem_41
@@ -83,7 +103,7 @@ Inst_memory_5:	ENTITY	work.memory_2
 	PORT MAP(
 		input0 => mem_40,
 		input1 => mem_41,
-		button => button1,
+		button => s_pulse2,
 		clk	 => clk_in,
       output0=> mem_50,
 		output1=> mem_51
@@ -92,7 +112,7 @@ Inst_memory_6:	ENTITY	work.memory_2
 	PORT MAP(
 		input0 => mem_50,
 		input1 => mem_51,
-		button => button1,
+		button => s_pulse2,
 		clk	 => clk_in,
       output0=> mem_60,
 		output1=> mem_61
@@ -101,7 +121,7 @@ Inst_memory_7:	ENTITY	work.memory_2
 	PORT MAP(
 		input0 => mem_60,
 		input1 => mem_61,
-		button => button1,
+		button => s_pulse2,
 		clk	 => clk_in,
       output0=> mem_70,
 		output1=> mem_71
@@ -110,17 +130,21 @@ Inst_memory_8:	ENTITY	work.memory_2
 	PORT MAP(
 		input0 => mem_70,
 		input1 => mem_71,
-		button => button1,
+		button => s_pulse2,
 		clk	 => clk_in,
       output0=> mem_80,
 		output1=> mem_81
 	);
+	
+-- Pulse
 Inst_pulse	 :	ENTITY	work.pulse
 	PORT MAP(
 		clk	 		=> clk_in,
 		user_input	=> button2,
 		output_1		=> s_pulse
 	);
+	
+-- Switch between states
 Inst_machine :	ENTITY	work.machine
 	PORT MAP(
 		clk	 		=> clk_in,
@@ -134,7 +158,9 @@ Inst_machine :	ENTITY	work.machine
 		state_7 => s_state7,
 		state_8 => s_state8
 	);
-Inst_sum		 :	ENTITY	work.sum
+	
+-- Sumation
+Inst_sum	:	ENTITY	work.sum
 	PORT MAP(
       data0 => (mem_10 xor mem_11),
 		data1 => ((mem_20 xor mem_21) and (s_state2 or s_state3 or s_state4 or s_state5 or s_state6 or s_state7 or s_state8)),
@@ -146,6 +172,8 @@ Inst_sum		 :	ENTITY	work.sum
 		data7 => ((mem_80 xor mem_81) and (s_state8)),
       y 		=> s_sum
 	);
+	
+-- Decoder for segments
 Inst_decoder :	ENTITY	work.decoder_segm
 	PORT MAP(
 		input4	=> s_sum,
